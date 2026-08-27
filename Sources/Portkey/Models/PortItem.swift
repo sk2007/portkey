@@ -116,6 +116,77 @@ public struct PortItem: Identifiable, Hashable, Sendable {
         }
     }
     
+    /// Determines whether the process was instantiated by a developer (CLI, scripts, npm, python, etc.)
+    public var isDeveloperInstantiated: Bool {
+        if isSystemProcess {
+            return false
+        }
+        
+        let lowerName = processName.lowercased()
+        let lowerCmd = (commandLine ?? "").lowercased()
+        let lowerPath = (processPath ?? "").lowercased()
+        let fullCheck = "\(lowerName) \(lowerCmd)"
+        
+        // 1. Known developer runtimes, interpreters, and package managers
+        let devRuntimes = [
+            "node", "npm", "npx", "pnpm", "yarn", "bun", "deno",
+            "vite", "next", "next-server", "turbo", "webpack", "rollup", "esbuild", "nodemon", "ts-node", "tsx",
+            "python", "python3", "python3.10", "python3.11", "python3.12", "python3.13", "python3.9", "python3.8",
+            "uvicorn", "gunicorn", "flask", "fastapi", "django", "celery", "jupyter", "streamlit", "gradio", "hypercorn",
+            "ruby", "rails", "puma", "sidekiq", "unicorn", "rackup", "falcon",
+            "go", "air", "gin", "fiber",
+            "cargo", "cargo-watch", "rustc",
+            "php", "artisan", "symfony",
+            "java", "gradle", "mvn", "sbt", "quarkus",
+            "mix", "elixir", "phoenix", "iex",
+            "dotnet", "csharp",
+            "agy", "antigravity"
+        ]
+        
+        for runtime in devRuntimes {
+            if lowerName == runtime || lowerName.hasPrefix("\(runtime)-") || lowerName.hasPrefix("\(runtime).") {
+                return true
+            }
+        }
+        
+        // 2. Dev command line patterns (e.g. "npm run dev", "python3 app.py", "uvicorn main:app", etc.)
+        let devCmdKeywords = [
+            "run dev", "npm run", "pnpm run", "yarn dev", "bun run", "bun dev", "npx ",
+            "app.py", "main.py", "server.py", "manage.py", "uvicorn", "gunicorn", "flask run",
+            "next dev", "vite", "ts-node", "nodemon", "cargo run", "go run",
+            "http.server", "manage.py runserver", "start:dev", "start:debug",
+            ".js", ".ts", ".py", ".rb", ".go", ".rs", ".php", ".mjs", ".cjs"
+        ]
+        
+        for kw in devCmdKeywords {
+            if fullCheck.contains(kw) {
+                return true
+            }
+        }
+        
+        // 3. User directory execution environments (e.g. ~/.nvm, ~/.pyenv, ~/.cargo, virtualenvs, local node_modules)
+        if lowerPath.hasPrefix("/users/") {
+            let isUserDevEnv = lowerPath.contains("/.nvm/") ||
+                               lowerPath.contains("/.pyenv/") ||
+                               lowerPath.contains("/.cargo/") ||
+                               lowerPath.contains("/.bun/") ||
+                               lowerPath.contains("/.asdf/") ||
+                               lowerPath.contains("/.local/") ||
+                               lowerPath.contains("/venv/") ||
+                               lowerPath.contains("/.venv/") ||
+                               lowerPath.contains("/env/") ||
+                               lowerPath.contains("/node_modules/") ||
+                               lowerPath.contains("/target/") ||
+                               lowerPath.contains("/build/") ||
+                               lowerPath.contains("/dist/")
+            if isUserDevEnv {
+                return true
+            }
+        }
+        
+        return false
+    }
+
     public var category: ProcessCategory {
         if isSystemProcess {
             return .system
@@ -144,7 +215,8 @@ public struct PortItem: Identifiable, Hashable, Sendable {
         }
         
         // Web / Dev servers
-        if fullCheck.contains("node") || fullCheck.contains("bun") ||
+        if isDeveloperInstantiated ||
+           fullCheck.contains("node") || fullCheck.contains("bun") ||
            fullCheck.contains("deno") || fullCheck.contains("next") ||
            fullCheck.contains("vite") || fullCheck.contains("react") ||
            fullCheck.contains("vue") || fullCheck.contains("nuxt") ||

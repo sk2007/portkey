@@ -30,7 +30,7 @@ public struct DormantPortRowView: View {
                 )
             
             // Port Number
-            Text(":\(status.preset.port)")
+            Text(verbatim: ":\(status.preset.port)")
                 .font(.system(size: 13, weight: .bold, design: .monospaced))
                 .foregroundColor(.primary)
                 .frame(minWidth: 55, alignment: .leading)

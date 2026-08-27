@@ -2,7 +2,8 @@ import Foundation
 
 public enum PortCategoryFilter: String, CaseIterable, Identifiable, Sendable {
     case all = "All"
-    case devServers = "Dev Servers"
+    case devProcesses = "Dev Commands"
+    case devServers = "Servers & Containers"
     case databases = "Databases"
     case system = "System"
     case favorites = "Favorites"
@@ -13,6 +14,7 @@ public enum PortCategoryFilter: String, CaseIterable, Identifiable, Sendable {
     public var iconName: String {
         switch self {
         case .all: return "list.bullet"
+        case .devProcesses: return "terminal.fill"
         case .devServers: return "chevron.left.forwardslash.chevron.right"
         case .databases: return "cylinder.split.1x2"
         case .system: return "apple.logo"

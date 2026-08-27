@@ -10,12 +10,18 @@ public struct MainMenuBarView: View {
     
     @State private var searchText: String = ""
     @State private var selectedTab: PortCategoryFilter = .all
+    @State private var onlyDeveloperProcesses: Bool = false
     @State private var sortOption: PortSortOption = .portAscending
-    @State private var showAddPresetSheet: Bool = false
-    @State private var showSettingsSheet: Bool = false
+    @State private var currentScreen: ActiveNavigationScreen = .main
     @State private var processToKill: PortItem? = nil
     @State private var showKillAllConfirmation: Bool = false
     @State private var toastMessage: String? = nil
+    
+    public enum ActiveNavigationScreen {
+        case main
+        case settings
+        case addPreset
+    }
     
     public init() {}
     
@@ -28,10 +34,17 @@ public struct MainMenuBarView: View {
             items = items.filter { !$0.isSystemProcess }
         }
         
+        // Filter by dev-instantiated toggle button
+        if onlyDeveloperProcesses {
+            items = items.filter { $0.isDeveloperInstantiated }
+        }
+        
         // Category filtering
         switch selectedTab {
         case .all:
             break
+        case .devProcesses:
+            items = items.filter { $0.isDeveloperInstantiated }
         case .devServers:
             items = items.filter { $0.category == .webDev || $0.category == .container }
         case .databases:
@@ -86,36 +99,38 @@ public struct MainMenuBarView: View {
     }
     
     public var body: some View {
-        VStack(spacing: 0) {
-            // Header Bar
-            headerView
-            
-            Divider()
-            
-            // Search and Filter Bar
-            searchAndFilterBar
-            
-            Divider()
-            
-            // Main Content List
-            mainContentList
-            
-            Divider()
-            
-            // Footer Bar
-            footerView
+        ZStack {
+            switch currentScreen {
+            case .main:
+                mainView
+                    .transition(.opacity)
+            case .settings:
+                SettingsView(onDismiss: {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        currentScreen = .main
+                    }
+                })
+                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .trailing)))
+            case .addPreset:
+                AddPresetView(
+                    onDismiss: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            currentScreen = .main
+                        }
+                    },
+                    onAdd: { name, port, proto, proc, desc in
+                        presetManager.addPreset(name: name, port: port, protocolType: proto, expectedProcess: proc, description: desc)
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            currentScreen = .main
+                        }
+                        showToast("Preset added for :\(port)")
+                    }
+                )
+                .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .trailing)))
+            }
         }
         .frame(width: 440, height: 530)
         .background(Color(nsColor: .windowBackgroundColor))
-        .sheet(isPresented: $showAddPresetSheet) {
-            AddPresetView { name, port, proto, proc, desc in
-                presetManager.addPreset(name: name, port: port, protocolType: proto, expectedProcess: proc, description: desc)
-                showToast("Preset added for :\(port)")
-            }
-        }
-        .sheet(isPresented: $showSettingsSheet) {
-            SettingsView()
-        }
         .alert("Kill Process?", isPresented: Binding(
             get: { processToKill != nil },
             set: { if !$0 { processToKill = nil } }
@@ -130,7 +145,7 @@ public struct MainMenuBarView: View {
             }
         } message: {
             if let item = processToKill {
-                Text("Are you sure you want to terminate \(item.processName) (PID \(item.pid)) on port \(item.port)?")
+                Text(verbatim: "Are you sure you want to terminate \(item.processName) (PID \(item.pid)) on port \(item.port)?")
             }
         }
         .alert("Kill All Dev Servers?", isPresented: $showKillAllConfirmation) {
@@ -155,6 +170,28 @@ public struct MainMenuBarView: View {
         }
     }
     
+    private var mainView: some View {
+        VStack(spacing: 0) {
+            // Header Bar
+            headerView
+            
+            Divider()
+            
+            // Search and Filter Bar
+            searchAndFilterBar
+            
+            Divider()
+            
+            // Main Content List
+            mainContentList
+            
+            Divider()
+            
+            // Footer Bar
+            footerView
+        }
+    }
+    
     // MARK: - Header
     private var headerView: some View {
         HStack(spacing: 8) {
@@ -166,7 +203,7 @@ public struct MainMenuBarView: View {
                 .font(.system(size: 14, weight: .bold))
             
             // Active ports count badge
-            Text("\(scanner.activePorts.count) active")
+            Text(verbatim: "\(scanner.activePorts.count) active")
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -197,7 +234,11 @@ public struct MainMenuBarView: View {
             .keyboardShortcut("r", modifiers: .command)
             
             // Add Preset
-            Button(action: { showAddPresetSheet = true }) {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    currentScreen = .addPreset
+                }
+            }) {
                 Image(systemName: "plus")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(.secondary)
@@ -209,7 +250,11 @@ public struct MainMenuBarView: View {
             .help("Add Port Preset")
             
             // Settings
-            Button(action: { showSettingsSheet = true }) {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    currentScreen = (currentScreen == .settings ? .main : .settings)
+                }
+            }) {
                 Image(systemName: "gearshape")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(.secondary)
@@ -243,7 +288,36 @@ public struct MainMenuBarView: View {
     // MARK: - Search and Filter Bar
     private var searchAndFilterBar: some View {
         VStack(spacing: 6) {
-            SearchField(text: $searchText)
+            HStack(spacing: 6) {
+                SearchField(text: $searchText)
+                
+                // Dev-instantiated quick filter button
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        onlyDeveloperProcesses.toggle()
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "terminal.fill")
+                            .font(.system(size: 10))
+                        Text("Dev Only")
+                            .font(.system(size: 11, weight: onlyDeveloperProcesses ? .semibold : .regular))
+                    }
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 5)
+                    .foregroundColor(onlyDeveloperProcesses ? .white : .secondary)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(onlyDeveloperProcesses ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .stroke(onlyDeveloperProcesses ? Color.clear : Color(nsColor: .separatorColor).opacity(0.6), lineWidth: 0.8)
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+                .help(onlyDeveloperProcesses ? "Showing only dev-instantiated processes (Click to show all)" : "Filter to show only developer-instantiated processes (npm run dev, python app.py, vite, etc.)")
+            }
             
             // Segmented Filter Tabs
             ScrollView(.horizontal, showsIndicators: false) {
@@ -336,7 +410,9 @@ public struct MainMenuBarView: View {
             
             if selectedTab == .dormant {
                 Button("Add New Preset") {
-                    showAddPresetSheet = true
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        currentScreen = .addPreset
+                    }
                 }
                 .font(.system(size: 11))
                 .buttonStyle(.bordered)
@@ -357,7 +433,7 @@ public struct MainMenuBarView: View {
                     .fill(scanner.autoRefreshEnabled ? Color.green : Color.orange)
                     .frame(width: 6, height: 6)
                 
-                Text(scanner.autoRefreshEnabled ? "Live (\(Int(scanner.refreshInterval))s)" : "Manual")
+                Text(verbatim: scanner.autoRefreshEnabled ? "Live (\(Int(scanner.refreshInterval))s)" : "Manual")
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
             }
@@ -371,7 +447,7 @@ public struct MainMenuBarView: View {
                     HStack(spacing: 3) {
                         Image(systemName: "bolt.fill")
                             .font(.system(size: 9))
-                        Text("Kill Dev Servers (\(devServers.count))")
+                        Text(verbatim: "Kill Dev Servers (\(devServers.count))")
                             .font(.system(size: 10, weight: .semibold))
                     }
                     .foregroundColor(.red)

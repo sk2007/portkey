@@ -13,6 +13,7 @@ final class PortkeyTests: XCTestCase {
             commandLine: "node /app/server.js"
         )
         XCTAssertEqual(nodeItem.category, .webDev)
+        XCTAssertTrue(nodeItem.isDeveloperInstantiated)
         XCTAssertTrue(nodeItem.isLocalhostOnly)
         XCTAssertFalse(nodeItem.isWildcard)
         XCTAssertEqual(nodeItem.browserURL?.absoluteString, "http://localhost:3000")
@@ -22,10 +23,20 @@ final class PortkeyTests: XCTestCase {
             bindAddress: "0.0.0.0",
             pid: 4567,
             processName: "python",
-            commandLine: "python -m uvicorn main:app --reload"
+            commandLine: "python3 app.py"
         )
         XCTAssertEqual(pythonItem.category, .webDev)
+        XCTAssertTrue(pythonItem.isDeveloperInstantiated)
         XCTAssertTrue(pythonItem.isWildcard)
+        
+        let npmItem = PortItem(
+            port: 5173,
+            bindAddress: "127.0.0.1",
+            pid: 7890,
+            processName: "node",
+            commandLine: "npm run dev"
+        )
+        XCTAssertTrue(npmItem.isDeveloperInstantiated)
         
         // Database
         let postgresItem = PortItem(
@@ -66,6 +77,7 @@ final class PortkeyTests: XCTestCase {
             isSystemProcess: true
         )
         XCTAssertEqual(systemItem.category, .system)
+        XCTAssertFalse(systemItem.isDeveloperInstantiated)
     }
     
     @MainActor

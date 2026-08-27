@@ -23,6 +23,11 @@ chmod +x "${MACOS_DIR}/${APP_NAME}"
 # Copy Info.plist
 cp "Packaging/Info.plist" "${CONTENTS_DIR}/Info.plist"
 
+# Copy AppIcon if present
+if [ -f "Packaging/AppIcon.icns" ]; then
+    cp "Packaging/AppIcon.icns" "${RESOURCES_DIR}/AppIcon.icns"
+fi
+
 # Write PkgInfo
 echo -n "APPL????" > "${CONTENTS_DIR}/PkgInfo"
 

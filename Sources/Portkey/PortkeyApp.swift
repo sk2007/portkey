@@ -20,7 +20,7 @@ struct PortkeyApp: App {
             HStack(spacing: 3) {
                 Image(systemName: "point.3.filled.connected.trianglepath.dotted")
                 if scanner.activePorts.count > 0 {
-                    Text("\(scanner.activePorts.count)")
+                    Text(verbatim: "\(scanner.activePorts.count)")
                         .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 }
             }

@@ -41,7 +41,7 @@ public struct PortRowView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 5))
                 
                 // Port Number
-                Text(":\(item.port)")
+                Text(verbatim: ":\(item.port)")
                     .font(.system(size: 13, weight: .bold, design: .monospaced))
                     .foregroundColor(.primary)
                     .frame(minWidth: 55, alignment: .leading)
@@ -54,7 +54,18 @@ public struct PortRowView: View {
                             .foregroundColor(.primary)
                             .lineLimit(1)
                         
-                        Text("PID \(item.pid)")
+                        if item.isDeveloperInstantiated {
+                            Text("DEV")
+                                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                                .foregroundColor(.cyan)
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 1)
+                                .background(Color.cyan.opacity(0.12))
+                                .clipShape(RoundedRectangle(cornerRadius: 3))
+                                .help("Developer CLI command (\(item.commandLine ?? item.processName))")
+                        }
+                        
+                        Text(verbatim: "PID \(item.pid)")
                             .font(.system(size: 10, design: .monospaced))
                             .foregroundColor(.secondary)
                     }
@@ -221,7 +232,7 @@ public struct PortRowView: View {
                                 .foregroundColor(.secondary)
                                 .frame(width: 70, alignment: .leading)
                             
-                            Text("\(item.protocolType.rawValue) \(item.ipVersion.rawValue) on \(item.bindAddress):\(item.port)")
+                            Text(verbatim: "\(item.protocolType.rawValue) \(item.ipVersion.rawValue) on \(item.bindAddress):\(item.port)")
                                 .font(.system(size: 10, design: .monospaced))
                                 .foregroundColor(.secondary)
                         }
