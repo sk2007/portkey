@@ -39,7 +39,7 @@ public struct AddPresetView: View {
                     Text("Preset Name (e.g. FastAPI Backend)")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    TextField("Next.js Server, Postgres DB, etc.", text: $name)
+                    TextField("Next.js Server Postgres DB etc.", text: $name)
                         .textFieldStyle(.roundedBorder)
                 }
                 
@@ -68,7 +68,7 @@ public struct AddPresetView: View {
                     Text("Expected Process Name (Optional)")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    TextField("node, python, postgres, redis-server...", text: $expectedProcess)
+                    TextField("node python postgres redis-server...", text: $expectedProcess)
                         .textFieldStyle(.roundedBorder)
                 }
                 

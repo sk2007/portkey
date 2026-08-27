@@ -28,7 +28,7 @@ public struct PortPreset: Identifiable, Codable, Hashable, Sendable {
     }
     
     public static let defaultPresets: [PortPreset] = [
-        PortPreset(name: "React / Next.js / Vite", port: 3000, expectedProcess: "node", description: "Standard React, Next.js, or Vite dev server", isCustom: false),
+        PortPreset(name: "React / Next.js / Vite", port: 3000, expectedProcess: "node", description: "Standard React Next.js or Vite dev server", isCustom: false),
         PortPreset(name: "Alternative Dev Server", port: 3001, expectedProcess: "node", description: "Secondary Node/Vite port", isCustom: false),
         PortPreset(name: "Angular / Ember", port: 4200, expectedProcess: "node", description: "Angular CLI dev server", isCustom: false),
         PortPreset(name: "Vite Dev Server", port: 5173, expectedProcess: "node", description: "Default Vite dev server", isCustom: false),

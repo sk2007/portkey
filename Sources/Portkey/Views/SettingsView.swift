@@ -59,7 +59,7 @@ public struct SettingsView: View {
                 
                 // Display preferences
                 VStack(alignment: .leading, spacing: 8) {
-                    Toggle("Hide macOS System Daemons (rapportd, etc.) by default", isOn: $hideSystemProcesses)
+                    Toggle("Hide macOS System Daemons (rapportd etc.) by default", isOn: $hideSystemProcesses)
                         .toggleStyle(.checkbox)
                         .font(.system(size: 12))
                     
@@ -121,7 +121,7 @@ public struct SettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will restore the standard developer port presets (Next.js, Postgres, Redis, etc.) and remove any custom additions.")
+            Text("This will restore the standard developer port presets (Next.js Postgres Redis etc.) and remove any custom additions.")
         }
     }
 }

@@ -2,9 +2,9 @@ import SwiftUI
 
 public struct SearchField: View {
     @Binding public var text: String
-    public var placeholder: String = "Search ports, process, or address..."
+    public var placeholder: String = "Search ports process or address..."
     
-    public init(text: Binding<String>, placeholder: String = "Search ports, process, or address...") {
+    public init(text: Binding<String>, placeholder: String = "Search ports process or address...") {
         self._text = text
         self.placeholder = placeholder
     }
