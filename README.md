@@ -1,4 +1,4 @@
-# ⚡ Portkey (macOS Menu Bar Port Manager)
+# Portkey (macOS Menu Bar Port Manager)
 
 **Portkey** is a native, ultra-lightweight macOS menu bar application designed for developers to effortlessly monitor, manage, inspect, and free up network ports (`localhost`, `127.0.0.1`, `0.0.0.0`, `192.168.x.x`, `[::1]`, etc.).
 
@@ -6,29 +6,32 @@ Built with **Swift & SwiftUI** for macOS 14+ (Sonoma, Sequoia, and beyond), Port
 
 ---
 
-## ✨ Features
+## Features
 
-- 🟢 **Real-Time Port Discovery:**
+- **Real-Time Port Discovery:**
   - Instantly lists all listening TCP & UDP sockets.
   - Automatically identifies process name, PID, user, binding address, and full command line arguments.
   - Smart categorization: Web & Dev servers (`node`, `python`, `bun`, `next`, `vite`, `rails`), Databases (`postgres`, `mysql`, `redis`, `mongo`), Containers (`docker`, `colima`), and macOS System daemons.
   
-- ⚡ **One-Click Port Freeing:**
+- **One-Click Port Freeing:**
   - Instant process termination (`SIGTERM` with escalation to `SIGKILL`).
   - "Kill All Dev Servers" bulk action to clean up multiple running projects simultaneously.
   - Graceful fallback with authorization prompt if elevated permissions are required.
 
-- ⚪ **Dormant & Saved Presets:**
+- **Developer-Instantiated Process Filtering:**
+  - 1-click filter to isolate ports started by developer CLI workflows (`npm run dev`, `python app.py`, `vite`, `cargo run`, etc.).
+
+- **Dormant & Saved Presets:**
   - Track common developer ports (`:3000`, `:5432`, `:8000`, `:6379`, `:8080`, etc.) to see at a glance whether expected services are running or free.
   - Add custom presets with expected process names and descriptions.
 
-- 🌐 **Developer Quick Actions:**
+- **Developer Quick Actions:**
   - **Open in Browser:** One-click to open `http://localhost:<port>` or `http://<ip>:<port>`.
   - **Copy Details:** Copy URLs, port numbers, PIDs, full command strings, or `kill -9 <PID>` commands to clipboard.
   - **Inspect & Reveal:** Inspect process executable paths and reveal them directly in macOS Finder.
   - **Favorites:** Star frequently used ports to pin them at the top.
 
-- ⚙️ **Customizable Preferences:**
+- **Customizable Preferences:**
   - Auto-refresh frequency (1s, 2s, 5s, 10s, or manual).
   - Hide macOS system daemons by default.
   - Optional confirmation prompts before killing processes.
@@ -36,7 +39,7 @@ Built with **Swift & SwiftUI** for macOS 14+ (Sonoma, Sequoia, and beyond), Port
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Build & Run
 To compile and assemble the native macOS app:
@@ -65,7 +68,7 @@ swift test
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Shortcut | Action |
 | :--- | :--- |
@@ -75,7 +78,7 @@ swift test
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 Sources/Portkey/
@@ -92,8 +95,8 @@ Sources/Portkey/
     ├── MainMenuBarView.swift      # Popover UI with header, filters, active list, and actions
     ├── PortRowView.swift          # Individual port card with quick actions and expandable inspector
     ├── DormantPortRowView.swift   # Row component for dormant / preset ports
-    ├── AddPresetView.swift        # Modal to configure custom port presets
-    ├── SettingsView.swift         # Preferences sheet
+    ├── AddPresetView.swift        # View to configure custom port presets
+    ├── SettingsView.swift         # Preferences view
     └── Components/
         ├── SearchField.swift      # macOS search bar
         └── StatusBadge.swift      # Protocol and address badges
@@ -101,7 +104,7 @@ Sources/Portkey/
 
 ---
 
-## 🧪 Testing
+## Testing
 
 Run the test suite:
 ```bash
@@ -110,5 +113,5 @@ swift test
 
 ---
 
-## 📄 License
+## License
 MIT License.

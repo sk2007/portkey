@@ -9,10 +9,10 @@ CONTENTS_DIR="${APP_BUNDLE}/Contents"
 MACOS_DIR="${CONTENTS_DIR}/MacOS"
 RESOURCES_DIR="${CONTENTS_DIR}/Resources"
 
-echo "🔨 Building ${APP_NAME} in ${CONFIGURATION} mode..."
+echo "Building ${APP_NAME} in ${CONFIGURATION} mode..."
 swift build -c "${CONFIGURATION}"
 
-echo "📦 Assembling ${APP_BUNDLE}..."
+echo "Assembling ${APP_BUNDLE}..."
 rm -rf "${APP_BUNDLE}"
 mkdir -p "${MACOS_DIR}" "${RESOURCES_DIR}"
 
@@ -31,5 +31,5 @@ fi
 # Write PkgInfo
 echo -n "APPL????" > "${CONTENTS_DIR}/PkgInfo"
 
-echo "✅ Successfully created ${APP_BUNDLE}!"
-echo "👉 You can run it with: open ${APP_BUNDLE}"
+echo "Successfully created ${APP_BUNDLE}!"
+echo "Run with: open ${APP_BUNDLE}"

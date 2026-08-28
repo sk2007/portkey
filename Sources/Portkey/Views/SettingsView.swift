@@ -175,7 +175,7 @@ public struct SettingsView: View {
                             
                             if showResetConfirmation {
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text("⚠️ This will restore standard presets and remove any custom ones.")
+                                    Text("This will restore standard presets and remove any custom ones.")
                                         .font(.system(size: 11))
                                         .foregroundColor(.orange)
                                     
@@ -207,7 +207,7 @@ public struct SettingsView: View {
                             }
                             
                             if resetToast {
-                                Text("✅ Presets restored to defaults!")
+                                Text("Presets restored to defaults.")
                                     .font(.system(size: 11, weight: .medium))
                                     .foregroundColor(.green)
                             }
