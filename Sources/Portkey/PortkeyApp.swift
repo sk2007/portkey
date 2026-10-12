@@ -14,6 +14,12 @@ struct PortkeyApp: App {
     @StateObject private var scanner = PortScanner.shared
     
     var body: some Scene {
+        WindowGroup("Portkey", id: "dashboard") {
+            MainMenuBarView()
+        }
+        .defaultSize(width: 440, height: 570)
+        .windowResizability(.contentSize)
+
         MenuBarExtra {
             MainMenuBarView()
         } label: {

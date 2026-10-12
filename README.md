@@ -12,6 +12,11 @@ Built with **Swift & SwiftUI** for macOS 14+ (Sonoma, Sequoia, and beyond), Port
   - Instantly lists all listening TCP & UDP sockets.
   - Automatically identifies process name, PID, user, binding address, and full command line arguments.
   - Smart categorization: Web & Dev servers (`node`, `python`, `bun`, `next`, `vite`, `rails`), Databases (`postgres`, `mysql`, `redis`, `mongo`), Containers (`docker`, `colima`), and macOS System daemons.
+
+- **System Monitor:**
+  - Live memory use, CPU load, and thermal state.
+  - Per-second upload and download rates summed across active network interfaces.
+  - Fan control availability is reported clearly. macOS does not provide a public fan-control API.
   
 - **One-Click Port Freeing:**
   - Instant process termination (`SIGTERM` with escalation to `SIGKILL`).
@@ -36,6 +41,7 @@ Built with **Swift & SwiftUI** for macOS 14+ (Sonoma, Sequoia, and beyond), Port
   - Hide macOS system daemons by default.
   - Optional confirmation prompts before killing processes.
   - Native Launch at Login support via `SMAppService`.
+  - A dashboard window and menu bar popover share the same Ports and Monitor pages.
 
 ---
 
@@ -89,6 +95,7 @@ Sources/Portkey/
 │   └── FilterOptions.swift        # Filtering categories and sorting options
 ├── Services/
 │   ├── PortScanner.swift          # High-performance lsof & libproc socket parser with diffing
+│   ├── SystemMonitor.swift        # Memory, CPU, thermal, and network-rate sampling
 │   ├── ProcessManager.swift       # Graceful SIGTERM/SIGKILL termination, URL opener, clipboard, login item
 │   └── PresetManager.swift        # Preset persistence & dormant port evaluation
 └── Views/

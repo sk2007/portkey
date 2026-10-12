@@ -4,6 +4,7 @@ import AppKit
 public struct MainMenuBarView: View {
     @ObservedObject private var scanner = PortScanner.shared
     @ObservedObject private var presetManager = PresetManager.shared
+    @ObservedObject private var monitor = SystemMonitor.shared
     
     @AppStorage("portkey_hide_system_processes") private var hideSystemProcesses: Bool = false
     @AppStorage("portkey_confirm_kill") private var confirmKill: Bool = false
@@ -16,6 +17,12 @@ public struct MainMenuBarView: View {
     @State private var processToKill: PortItem? = nil
     @State private var showKillAllConfirmation: Bool = false
     @State private var toastMessage: String? = nil
+    @State private var selectedPage: MainPage = .ports
+
+    private enum MainPage: String, CaseIterable {
+        case ports = "Ports"
+        case monitor = "Monitor"
+    }
     
     public enum ActiveNavigationScreen {
         case main
@@ -129,7 +136,7 @@ public struct MainMenuBarView: View {
                 .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .trailing)))
             }
         }
-        .frame(width: 440, height: 530)
+        .frame(width: 440, height: 570)
         .background(Color(nsColor: .windowBackgroundColor))
         .alert("Kill Process?", isPresented: Binding(
             get: { processToKill != nil },
@@ -172,24 +179,170 @@ public struct MainMenuBarView: View {
     
     private var mainView: some View {
         VStack(spacing: 0) {
-            // Header Bar
             headerView
-            
             Divider()
-            
-            // Search and Filter Bar
-            searchAndFilterBar
-            
+            pagePicker
             Divider()
-            
-            // Main Content List
-            mainContentList
-            
-            Divider()
-            
-            // Footer Bar
-            footerView
+
+            if selectedPage == .ports {
+                searchAndFilterBar
+                Divider()
+                mainContentList
+                Divider()
+                footerView
+            } else {
+                monitorView
+            }
         }
+    }
+
+    private var pagePicker: some View {
+        HStack(spacing: 4) {
+            ForEach(MainPage.allCases, id: \.self) { page in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.16)) { selectedPage = page }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: page == .ports ? "point.3.filled.connected.trianglepath.dotted" : "gauge.with.dots.needle.67percent")
+                        Text(page.rawValue)
+                    }
+                    .font(.system(size: 11, weight: selectedPage == page ? .semibold : .medium))
+                    .foregroundColor(selectedPage == page ? .primary : .secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 7)
+                    .background(selectedPage == page ? Color(nsColor: .windowBackgroundColor) : .clear)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(4)
+        .background(Color(nsColor: .controlBackgroundColor).opacity(0.75))
+        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background(Color(nsColor: .controlBackgroundColor).opacity(0.25))
+    }
+
+    private var monitorView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("System monitor")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Live resource and connection activity")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Circle().fill(Color.green).frame(width: 7, height: 7)
+                    Text("LIVE")
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .tracking(0.5)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 2)
+
+                HStack(spacing: 9) {
+                    monitorMetric(title: "MEMORY", value: byteCount(monitor.usedMemoryBytes), detail: "of \(byteCount(monitor.totalMemoryBytes))", icon: "memorychip", tint: .purple, progress: memoryProgress)
+                    monitorMetric(title: "CPU", value: "\(Int(monitor.cpuUsage * 100))%", detail: monitor.thermalDescription + " thermal", icon: "cpu", tint: .blue, progress: monitor.cpuUsage)
+                }
+
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Label("Connection speed", systemImage: "arrow.left.arrow.right")
+                            .font(.system(size: 12, weight: .semibold))
+                        Spacer()
+                        Text("All active interfaces")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                    }
+                    HStack(spacing: 0) {
+                        networkRate(title: "DOWNLOAD", speed: monitor.downloadBytesPerSecond, icon: "arrow.down.circle.fill", tint: .cyan)
+                        Rectangle().fill(Color(nsColor: .separatorColor)).frame(width: 1, height: 34)
+                        networkRate(title: "UPLOAD", speed: monitor.uploadBytesPerSecond, icon: "arrow.up.circle.fill", tint: .orange)
+                    }
+                    Text("Rates are sampled once per second from macOS interface counters.")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                }
+                .padding(12)
+                .background(Color(nsColor: .controlBackgroundColor).opacity(0.65))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Label("Cooling", systemImage: "fanblades.fill")
+                            .font(.system(size: 12, weight: .semibold))
+                        Spacer()
+                        Text("NOT AVAILABLE")
+                            .font(.system(size: 8, weight: .bold, design: .rounded))
+                            .tracking(0.4)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(Color.orange.opacity(0.14))
+                            .foregroundColor(.orange)
+                            .clipShape(Capsule())
+                    }
+                    Text("macOS doesn’t provide a public fan control API. Portkey can’t safely read or change fan speeds on this Mac.")
+                        .font(.system(size: 10.5))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(12)
+                .background(Color(nsColor: .controlBackgroundColor).opacity(0.65))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .padding(12)
+        }
+        .background(Color(nsColor: .windowBackgroundColor))
+    }
+
+    private var memoryProgress: Double {
+        guard monitor.totalMemoryBytes > 0 else { return 0 }
+        return min(1, Double(monitor.usedMemoryBytes) / Double(monitor.totalMemoryBytes))
+    }
+
+    private func monitorMetric(title: String, value: String, detail: String, icon: String, tint: Color, progress: Double) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack {
+                Image(systemName: icon).foregroundColor(tint)
+                Spacer()
+                Text(title).font(.system(size: 9, weight: .bold)).tracking(0.7).foregroundColor(.secondary)
+            }
+            Text(value).font(.system(size: 21, weight: .semibold, design: .rounded)).contentTransition(.numericText())
+            Text(detail).font(.system(size: 10)).foregroundColor(.secondary).lineLimit(1)
+            ProgressView(value: progress).tint(tint).controlSize(.small)
+        }
+        .padding(11)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: .controlBackgroundColor).opacity(0.65))
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private func networkRate(title: String, speed: UInt64, icon: String, tint: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon).font(.system(size: 17)).foregroundColor(tint)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.system(size: 8, weight: .bold)).tracking(0.55).foregroundColor(.secondary)
+                Text("\(byteCount(speed))/s")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 3)
+        .padding(.trailing, 10)
+        .padding(.leading, 4)
+    }
+
+    private func byteCount(_ bytes: UInt64) -> String {
+        ByteCountFormatter.string(fromByteCount: Int64(clamping: bytes), countStyle: .memory)
     }
     
     // MARK: - Header
